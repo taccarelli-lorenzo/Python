@@ -1,0 +1,76 @@
+{
+    "products": [
+        {
+            "id": 1,
+            "nome": "Acqua",
+            "prezzo": 1.00,
+            "quantità": 50
+        },
+        {
+            "id": 2,
+            "nome": "Coca Cola",
+            "prezzo": 1.50,
+            "quantità": 30
+        },
+        {
+            "id": 3,
+            "nome": "Patatine",
+            "prezzo": 1.20,
+            "quantità": 20
+        },
+        {
+            "id": 4,
+            "nome": "Cioccolato",
+            "prezzo": 1.80,
+            "quantità": 15
+        },
+        {
+            "id": 5,
+            "nome": "Succo di frutta",
+            "prezzo": 1.30,
+            "quantità": 25
+        },
+        {
+            "id": 6,
+            "nome": "Biscotti",
+            "prezzo": 1.00,
+            "quantità": 40
+        },
+        {
+            "id": 7,
+            "nome": "Tè freddo",
+            "prezzo": 1.20,
+            "quantità": 35
+        },
+        {
+            "id": 8,
+            "nome": "Caffè",
+            "prezzo": 0.80,
+            "quantità": 60
+        },
+        {
+            "id": 9,
+            "nome": "Gomma da masticare",
+            "prezzo": 0.50,
+            "quantità": 100
+        },
+        {
+            "id": 10,
+            "nome": "Barretta energetica",
+            "prezzo": 1.50,
+            "quantità": 20
+        },
+        {
+            "id": 11,
+            "nome": "Yogurt",
+            "prezzo": 1.00,
+            "quantità": 25
+        },
+        {
+            "id": 12,
+            "nome": "Panino",
+            "prezzo": 2.50,
+            "quantità": 10
+        }
+    ]
+}
