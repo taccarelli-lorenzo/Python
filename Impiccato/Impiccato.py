@@ -1,10 +1,43 @@
 import os
 import json
 import random
-import string
+import tkinter as tk
+from tkinter import messagebox
 
-def main():
-    
+class ImpiccatoApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Impiccato")
+        
+        self.parola = ""
+        self.parola_nascosta = ""
+        self.lettere = []
+        self.tentativi_falliti = 0
+        self.max_tentativi = 7
+        
+        self.setup_ui()
+        self.carica_dati()
+        self.nuova_partita()
+        
+        
+        
+    def setup_ui(self):
+        self.label_parola = tk.Label(self.root, text="", font=("Helvetica", 24))
+        self.label_parola.pack(pady=20)
+        
+        self.label_tentativi = tk.Label(self.root, text="Tentativi falliti: 0", font=("Helvetica", 14))
+        self.label_tentativi.pack(pady=10)
+        
+        self.entry_lettera = tk.Entry(self.root, font=("Helvetica", 14))
+        self.entry_lettera.pack(pady=10)
+        
+        self.button_invia = tk.Button(self.root, text="Invia", command=self.verifica_lettera, font=("Helvetica", 14))
+        self.button_invia.pack(pady=10)
+        
+        self.label_lettere_rimaste = tk.Label(self.root, text="", font=("Helvetica", 12))
+        self.label_lettere_rimaste.pack(pady=10)
+        
+        
     parolaCreata = ""
     trovato = False
     tentativiFalliti = 0
@@ -69,9 +102,3 @@ def main():
             print(parolaNascosta)
         
     
-    
-    
-    
-        
-if __name__ == "__main__":
-    main()

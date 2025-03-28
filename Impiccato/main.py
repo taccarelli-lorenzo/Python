@@ -1,5 +1,5 @@
 import tkinter as tk
-from Impiccato import Impiccato  
+from Impiccato import Impiccato 
 
 def main():
     gui = tk.Tk()
