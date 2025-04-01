@@ -1,10 +1,10 @@
 import tkinter as tk
-from Impiccato import Impiccato 
+from Impiccato import ImpiccatoApp
 
 def main():
-    gui = tk.Tk()
-    app = Impiccato(gui)  
-    gui.mainloop()      
+    root = tk.Tk()
+    app = ImpiccatoApp(root)
+    root.mainloop()
 
 if __name__ == "__main__":
     main()
