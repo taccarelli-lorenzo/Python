@@ -9,7 +9,7 @@ class ImpiccatoApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Impiccato")
-        self.root.geometry("900x700")
+        self.root.geometry("900x800")
         self.root.resizable(False, False)        
         self.max_tentativi = 7
         
@@ -76,6 +76,7 @@ class ImpiccatoApp:
         self.parola_nascosta = "_ " * len(self.parola)
         self.lettere = self.lettere_totali.copy()
         self.tentativi_falliti = 0
+        self.entry_lettera.config(state='normal')
         self.update_image()
         self.aggiorna_ui()
     
@@ -143,13 +144,11 @@ class ImpiccatoApp:
                 self.parola_nascosta = " ".join(nuova_parola)
                 
                 if "_" not in self.parola_nascosta:
-                    self.aggiorna_ui()
                     self.mostra_messaggio(f"Complimenti! Hai indovinato la parola: {self.parola}", "successo")
-                    self.nuova_partita()
+                    self.entry_lettera.config(state='disabled')
             else:
                 self.tentativi_falliti += 1
                 self.update_image()
-                self.aggiorna_ui()
                 if self.tentativi_falliti >= self.max_tentativi:
                     img_path = os.path.join(self.image_folder, 'hangman1.gif')
                     try:
@@ -160,6 +159,7 @@ class ImpiccatoApp:
                     except Exception as e:
                         self.mostra_messaggio(f"Errore nel caricamento immagine: {str(e)}", "errore")
                     self.mostra_messaggio(f"Game Over! La parola era: {self.parola}", "errore")
+                    self.entry_lettera.config(state='disabled')
         else:
             self.mostra_messaggio(f"La lettera '{scelta}' non è valida o è già stata usata", "avviso")
         
