@@ -146,6 +146,14 @@ class ImpiccatoApp:
                 if "_" not in self.parola_nascosta:
                     self.mostra_messaggio(f"Complimenti! Hai indovinato la parola: {self.parola}", "successo")
                     self.entry_lettera.config(state='disabled')
+                    img_path = os.path.join(self.image_folder, 'win.png')
+                    try:
+                        img = Image.open(img_path)
+                        img = img.resize(self.image_size, Image.LANCZOS)
+                        self.current_image = ImageTk.PhotoImage(img)
+                        self.image_label.config(image=self.current_image)
+                    except Exception as e:
+                        self.mostra_messaggio(f"Errore nel caricamento immagine: {str(e)}", "errore")
             else:
                 self.tentativi_falliti += 1
                 self.update_image()
