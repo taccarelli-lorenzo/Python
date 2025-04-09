@@ -1,0 +1,9 @@
+[
+    {"nome": "Luca", "voti": {"informatica": 8, "italiano": 6, "sistemi": 7}},
+    {"nome": "Marco", "voti": {"informatica": 9, "italiano": 7, "sistemi": 6}},
+    {"nome": "Elena", "voti": {"informatica": 5, "italiano": 8, "sistemi": 5}},
+    {"nome": "Alessia", "voti": {"informatica": 6, "italiano": 6, "sistemi": 7}},
+    {"nome": "Davide", "voti": {"informatica": 7, "italiano": 5, "sistemi": 6}}
+]
+
+    

@@ -113,7 +113,7 @@ class ImpiccatoApp:
             "avviso": "orange"
         }
         self.message_label.config(text=messaggio, fg=colori.get(tipo, "black"))
-        self.root.after(3000, lambda: self.message_label.config(text=""))
+        self.root.after(5000, lambda: self.message_label.config(text=""))
     
     #------------------------------------------------------------------------------------------#
     # Verifica la lettera inserita dall'utente #
