@@ -2,20 +2,18 @@ import os
 import json
 import random
 import tkinter as tk
-from tkinter import messagebox
 from PIL import Image, ImageTk
 
 class ImpiccatoApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Impiccato")
-        self.root.geometry("900x800")
-        self.root.resizable(False, False)        
+        self.root.state('zoomed')
         self.max_tentativi = 7
         
         self.image_folder = os.path.join(os.path.dirname(__file__), 'impiccato-image')
         self.images = []
-        self.image_size = (250, 350)
+        self.image_size = (512, 512)
         self.load_images()
         
         self.parola = ""
@@ -33,9 +31,8 @@ class ImpiccatoApp:
     def load_images(self):
         try:
             for i in range(self.max_tentativi):
-                img_path = os.path.join(self.image_folder, f'imp{i}.gif')
-                img = Image.open(img_path)
-                img = img.resize(self.image_size, Image.LANCZOS)
+                img_path = os.path.join(self.image_folder, f'img{i}.png')
+                img = Image.open(img_path).resize(self.image_size)
                 self.images.append(ImageTk.PhotoImage(img))
         except Exception as e:
             self.message_box("Errore", f"Impossibile caricare le immagini: {str(e)}")
@@ -46,8 +43,7 @@ class ImpiccatoApp:
     
     def update_image(self):
         if self.tentativi_falliti < len(self.images):
-            self.current_image = self.images[self.tentativi_falliti]
-            self.image_label.config(image=self.current_image)
+            self.image_label.config(image=self.images[self.tentativi_falliti])
     
     #------------------------------------------------------------------------------------------#
     # Carica le parole e le lettere dai file JSON #
@@ -84,10 +80,8 @@ class ImpiccatoApp:
     # Configura l'interfaccia grafica #
     
     def setup_ui(self):
-        self.message_frame = tk.Frame(self.root)
-        self.message_frame.pack(pady=5)
-        self.message_label = tk.Label(self.message_frame, text="", font=("Helvetica", 12))
-        self.message_label.pack()
+        self.message_label = tk.Label(self.root, text="", font=("Helvetica", 12))
+        self.message_label.pack(pady=5)
 
         self.image_label = tk.Label(self.root)
         self.image_label.pack(pady=10)
@@ -148,8 +142,7 @@ class ImpiccatoApp:
                     self.entry_lettera.config(state='disabled')
                     img_path = os.path.join(self.image_folder, 'win.png')
                     try:
-                        img = Image.open(img_path)
-                        img = img.resize(self.image_size, Image.LANCZOS)
+                        img = Image.open(img_path).resize(self.image_size)
                         self.current_image = ImageTk.PhotoImage(img)
                         self.image_label.config(image=self.current_image)
                     except Exception as e:
@@ -158,10 +151,9 @@ class ImpiccatoApp:
                 self.tentativi_falliti += 1
                 self.update_image()
                 if self.tentativi_falliti >= self.max_tentativi:
-                    img_path = os.path.join(self.image_folder, 'hangman1.gif')
+                    img_path = os.path.join(self.image_folder, 'lose.png')
                     try:
-                        img = Image.open(img_path)
-                        img = img.resize(self.image_size, Image.LANCZOS)
+                        img = Image.open(img_path).resize(self.image_size)
                         self.current_image = ImageTk.PhotoImage(img)
                         self.image_label.config(image=self.current_image)
                     except Exception as e:
