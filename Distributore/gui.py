@@ -5,194 +5,190 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 #------------------------------------------------------------------------------------------#
-# Funzioni per caricare e salvare i dati in JSON #
-
-def load_products(products_file):
+# Funzioni per caricare e salvare i dati
+def carica_prodotti(file_prodotti):
     try:
-        with open(products_file, 'r') as fileProdotti:
-            data = json.load(fileProdotti)
-            return data.get('products', [])
-    except Exception as e:
+        with open(file_prodotti, 'r') as f:
+            dati = json.load(f)
+            return dati.get('products', [])
+    except:
         return []
 
-def load_resti(resti_file):
+def carica_resto(file_resto):
+    default = {"2.00": 0, "1.00": 0, "0.5": 0, "0.2": 0, "0.1": 0, "0.05": 0}
     try:
-        with open(resti_file, 'r') as fileResti:
-            return json.load(fileResti).get('monete', {
-                "2.00": 0, "1.00": 0, "0.5": 0, 
-                "0.2": 0, "0.1": 0, "0.05": 0
-            })
-    except Exception as e:
-        return {
-            "2.00": 0, "1.00": 0, "0.5": 0,
-            "0.2": 0, "0.1": 0, "0.05": 0
-        }
+        with open(file_resto, 'r') as f:
+            return json.load(f).get('monete', default)
+    except:
+        return default
 
-def save_resti(resti_file, resti):
+def salva_resto(file_resto, resto):
     try:
-        with open(resti_file, 'w') as fileResti:
-            json.dump({"monete": {
-                "2.00": resti["2.00"],
-                "1.00": resti["1.00"],
-                "0.5": resti["0.5"],
-                "0.2": resti["0.2"],
-                "0.1": resti["0.1"],
-                "0.05": resti["0.05"]
-            }}, fileResti, indent=4)
+        with open(file_resto, 'w') as f:
+            json.dump({"monete": resto}, f, indent=4)
     except Exception as e:
-        print(f"Errore nel salvataggio del resto: {e}")
+        print("Errore nel salvataggio:", e)
 
-def save_products(products_file, prodotti):
+def salva_prodotti(file_prodotti, prodotti):
     try:
-        with open(products_file, 'w') as fileProdotti:
-            json.dump({"products": [ 
-                {
-                    "id": p["id"],
-                    "nome": p["nome"],
-                    "prezzo": p["prezzo"],
-                    "quantita": p["quantita"]
-                } for p in prodotti
-            ]}, fileProdotti, indent=4)
+        with open(file_prodotti, 'w') as f:
+            json.dump({"products": prodotti}, f, indent=4)
     except Exception as e:
-        print(f"Errore nel salvataggio dei prodotti: {e}")
+        print("Errore nel salvataggio:", e)
+        
 #------------------------------------------------------------------------------------------#
-# Funzione principale per l'interfaccia grafica #
+#  Main
 
 def main():
     gui = tk.Tk()
-    gui.title("Distributore")
+    gui.title("Distributore Automatico")
     gui.state('zoomed')
 
-    products_file = os.path.join(os.path.dirname(__file__), 'Json', 'products.json')
-    resti_file = os.path.join(os.path.dirname(__file__), 'Json', 'resto.json')
+    # Percorsi dei file
+    cartella_corrente = os.path.dirname(__file__)
+    file_prodotti = os.path.join(cartella_corrente, 'Json', 'products.json')
+    file_resto = os.path.join(cartella_corrente, 'Json', 'resto.json')
     
-    prodotti = load_products(products_file)
-    resti = load_resti(resti_file)
+    # Carica i dati iniziali
+    prodotti = carica_prodotti(file_prodotti)
+    resto = carica_resto(file_resto)
 
-    money_inserted = tk.DoubleVar(value=0.0)
-    display_info = tk.StringVar(value="Benvenuto! Inserisci il codice del prodotto.")
-    display_money = tk.StringVar(value=f"Soldi inseriti: €{money_inserted.get():.2f}") 
+    # Variabili per lo stato della macchina
+    soldi_inseriti = 0.0
+    codice_inserito = ""
+    messaggio = "Benvenuto! Inserisci il codice del prodotto."
 
-    products_list = {}
-    
     #------------------------------------------------------------------------------------------#
-    # Funzioni per aggiornare la visualizzazione dei prodotti e gestire il resto #
+    # Funzioni per aggiornare l'interfaccia
+    
+    def aggiorna_prodotti():
+        for prodotto in prodotti:
+            id_prodotto = prodotto['id']
+            if id_prodotto in widgets_prodotti:
+                testo = f"ID: {prodotto['id']}\n{prodotto['nome']}\n€{prodotto['prezzo']:.2f}\nDisponibili: {prodotto['quantita']}"
+                widgets_prodotti[id_prodotto]['label'].config(text=testo)
 
-    def update_product_display():
-        for product in prodotti:
-            widget_info = products_list.get(product['id'])
-            if widget_info:
-               
-                product_info = f"ID: {product['id']}\n{product['nome']}\n€{product['prezzo']:.2f}\nDisponibili: {product['quantita']}"
-                widget_info['label'].config(text=product_info)
-
-    def add_money(amount):
-        money_inserted.set(round(money_inserted.get() + amount, 2))
-        display_money.set(f"Soldi inseriti: €{money_inserted.get():.2f}")
+    def aggiungi_soldi(importo):
+        nonlocal soldi_inseriti
+        soldi_inseriti = round(soldi_inseriti + importo, 2)
+        label_soldi.config(text=f"Soldi inseriti: €{soldi_inseriti:.2f}")
         
-        if amount in [0.05, 0.1, 0.2, 0.5, 1.0, 2.0]:
-            key = f"{amount:.2f}" if amount >= 0.1 else "0.05"
-            resti[key] = resti.get(key, 0) + 1
-            save_resti(resti_file, resti)
+        # Aggiorna il resto se è una moneta
+        if importo in [0.05, 0.1, 0.2, 0.5, 1.0, 2.0]:
+            chiave = f"{importo:.2f}" if importo >= 0.1 else "0.05"
+            resto[chiave] = resto.get(chiave, 0) + 1
+            salva_resto(file_resto, resto)
 
-    def give_change():
-        change = round(money_inserted.get(), 2)
-        if change == 0:
-            display_info.set("Nessun resto da erogare.")
+    def dai_il_resto():
+        nonlocal soldi_inseriti, messaggio
+        if soldi_inseriti == 0:
+            messaggio = "Nessun resto da erogare."
+            label_info.config(text="Nessun resto da erogare.")
             return
 
-        change_given = {}
-        remaining = change
+        resto_da_dare = soldi_inseriti
+        monete_usate = {}
         
-        coin_order = ["2.00", "1.00", "0.5", "0.2", "0.1", "0.05"]
-        for coin_str in coin_order:
-            coin_value = float(coin_str)
-            if remaining >= coin_value and resti.get(coin_str, 0) > 0:
-                num_coins = min(int(remaining // coin_value), resti[coin_str])
-                if num_coins > 0:
-                    change_given[coin_str] = num_coins
-                    remaining = round(remaining - (num_coins * coin_value), 2)
-                    resti[coin_str] -= num_coins
+        # Ordine delle monete dalla più grande alla più piccola
+        monete = ["2.00", "1.00", "0.5", "0.2", "0.1", "0.05"]
+        
+        for moneta in monete:
+            valore = float(moneta)
+            if resto_da_dare >= valore and resto.get(moneta, 0) > 0:
+                numero_monete = min(int(resto_da_dare // valore), resto[moneta])
+                if numero_monete > 0:
+                    monete_usate[moneta] = numero_monete
+                    resto_da_dare = round(resto_da_dare - (numero_monete * valore), 2)
+                    resto[moneta] -= numero_monete
 
-        if remaining > 0:
-            display_info.set("Resto insufficiente. Mi scuso per l'inconveniente.")
+        if resto_da_dare > 0:
+            messaggio = "Resto insufficiente. Mi scuso per l'inconveniente."
         else:
-            display_info.set(f"Resto erogato: {', '.join([f'{v}x{c}€' for c, v in change_given.items()])}")
-            money_inserted.set(0.0)
-            display_money.set(f"Soldi inseriti: €{money_inserted.get():.2f}")
-            save_resti(resti_file, resti)
+            messaggio = "Resto erogato: " + ", ".join([f'{v}x{c}€' for c, v in monete_usate.items()])
+            soldi_inseriti = 0.0
+            label_soldi.config(text=f"Soldi inseriti: €{soldi_inseriti:.2f}")
+            salva_resto(file_resto, resto)
+        
+        label_info.config(text=messaggio)
 
-    def button_function(buttonArgument):
-        nonlocal codeInsert
-        if buttonArgument == "←":
-            codeInsert = codeInsert[:-1]
-            displayTastierino.delete(len(codeInsert), tk.END)
-        elif buttonArgument == "✓":
+    def gestisci_tasto(tasto):
+        nonlocal codice_inserito, messaggio, soldi_inseriti
+        
+        if tasto == "←":
+            codice_inserito = codice_inserito[:-1]
+            entry_codice.delete(len(codice_inserito), tk.END)
+        elif tasto == "✗":
+            codice_inserito = ""
+            entry_codice.delete(0, tk.END)
+        elif tasto == "✓":
             try:
-                code = int(codeInsert)
-                for product in prodotti:
-                    if product.get('id') == code:
-                        if product.get('quantita', 0) > 0:
-                            if money_inserted.get() >= product.get('prezzo', 0):
-                                money_inserted.set(round(money_inserted.get() - product.get('prezzo', 0), 2))
-                                display_money.set(f"Soldi inseriti: €{money_inserted.get():.2f}")
-                                product['quantita'] -= 1
-                                save_products(products_file, prodotti)
-                                update_product_display()  # Aggiorna la visualizzazione
-                                display_info.set(f"Prodotto erogato: {product.get('nome')}\nResto: €{money_inserted.get():.2f}")
+                codice = int(codice_inserito)
+                for prodotto in prodotti:
+                    if prodotto['id'] == codice:
+                        if prodotto['quantita'] > 0:
+                            if soldi_inseriti >= prodotto['prezzo']:
+                                soldi_inseriti = round(soldi_inseriti - prodotto['prezzo'], 2)
+                                label_soldi.config(text=f"Soldi inseriti: €{soldi_inseriti:.2f}")
+                                prodotto['quantita'] -= 1
+                                salva_prodotti(file_prodotti, prodotti)
+                                aggiorna_prodotti()
+                                messaggio = f"Prodotto erogato: {prodotto['nome']}\nResto: €{soldi_inseriti:.2f}"
                             else:
-                                display_info.set("Soldi insufficienti!")
+                                messaggio = "Soldi insufficienti!"
                         else:
-                            display_info.set("Prodotto esaurito!")
+                            messaggio = "Prodotto esaurito!"
                         break
                 else:
-                    display_info.set("Prodotto non trovato!")
+                    messaggio = "Prodotto non trovato!"
             except ValueError:
-                display_info.set("Inserire un codice numerico valido")
-            codeInsert = ""
-            displayTastierino.delete(0, tk.END)
-        elif buttonArgument == "✗":
-            codeInsert = ""
-            displayTastierino.delete(0, tk.END)
+                messaggio = "Inserire un codice numerico valido"
+            
+            codice_inserito = ""
+            entry_codice.delete(0, tk.END)
+            label_info.config(text=messaggio)
         else:
-            if len(codeInsert) < 3:
-                codeInsert += str(buttonArgument)
-                displayTastierino.delete(0, tk.END)
-                displayTastierino.insert(0, codeInsert)
+            if len(codice_inserito) < 3:
+                codice_inserito += str(tasto)
+                entry_codice.delete(0, tk.END)
+                entry_codice.insert(0, codice_inserito)
+                
+    #------------------------------------------------------------------------------------------#
+    # Parte grafica
+    
+    frame_principale = ttk.Frame(gui)
+    frame_principale.place(relx=0.5, rely=0.5, anchor="center")
 
-    # Interfaccia grafica
-    main_frame = ttk.Frame(gui)
-    main_frame.place(relx=0.5, rely=0.5, anchor="center")
+    frame_info = ttk.LabelFrame(frame_principale, text="Info")
+    frame_info.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+    
+    label_info = tk.Label(frame_info, text=messaggio, wraplength=400, font=12)
+    label_info.grid(row=0, column=0, padx=10, pady=10)
 
-    # Frames principali
-    lableFrameInfo = ttk.LabelFrame(main_frame, text="Info")
-    lableFrameInfo.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+    frame_prodotti = ttk.Frame(frame_principale)
+    frame_prodotti.grid(row=1, column=0, padx=10, pady=10)
 
-    frameProduct = ttk.Frame(main_frame)
-    frameProduct.grid(row=1, column=0, padx=10, pady=10)
+    label_prodotti = ttk.LabelFrame(frame_prodotti, text="Prodotti Disponibili")
+    label_prodotti.grid(row=0, column=0, padx=10, pady=10)
 
-    lableFrameProducts = ttk.LabelFrame(frameProduct, text="Prodotti Disponibili")
-    lableFrameProducts.grid(row=0, column=0, padx=10, pady=10)
+    frame_pulsanti = ttk.Frame(frame_principale)
+    frame_pulsanti.grid(row=1, column=1, padx=10, pady=10)
 
-    frameButtons = ttk.Frame(main_frame)
-    frameButtons.grid(row=1, column=1, padx=10, pady=10)
+    frame_tastierino = ttk.LabelFrame(frame_pulsanti, text="Inserisci codice")
+    frame_tastierino.grid(row=0, column=0, padx=10, pady=10)
 
-    lableFrameButtons = ttk.LabelFrame(frameButtons, text="Inserisci codice")
-    lableFrameButtons.grid(row=0, column=0, padx=10, pady=10)
+    frame_soldi = ttk.LabelFrame(frame_pulsanti, text="Inserisci denaro")
+    frame_soldi.grid(row=0, column=1, padx=10, pady=10, sticky="n")
 
-    lableFrameMoney = ttk.LabelFrame(frameButtons, text="Inserisci denaro")
-    lableFrameMoney.grid(row=0, column=1, padx=10, pady=10, sticky="n")
+    frame_soldi_attuali = ttk.LabelFrame(frame_principale, text="Credito Attuale")
+    frame_soldi_attuali.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
-    lableFrameCurrentMoney = ttk.LabelFrame(main_frame, text="Credito Attuale")
-    lableFrameCurrentMoney.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+    label_soldi = tk.Label(frame_soldi_attuali, text=f"Soldi inseriti: €{soldi_inseriti:.2f}", font=12)
+    label_soldi.grid(row=0, column=0, padx=10, pady=10)
 
-    tk.Label(lableFrameCurrentMoney, textvariable=display_money, font=12).grid(row=0, column=0, padx=10, pady=10)
+    entry_codice = tk.Entry(frame_tastierino, width=30, font=14)
+    entry_codice.grid(row=0, column=0, columnspan=3, pady=10)
 
-    # Tastierino numerico
-    displayTastierino = tk.Entry(lableFrameButtons, width=30, font=14)
-    displayTastierino.grid(row=0, column=0, columnspan=3, pady=10)
-
-    buttons = [
+    tasti = [
         ('A', 1, 0), ('B', 1, 1), ('←', 1, 2),
         (1, 2, 0), (2, 2, 1), (3, 2, 2),
         (4, 3, 0), (5, 3, 1), (6, 3, 2),
@@ -200,89 +196,73 @@ def main():
         ('✓', 5, 0), (0, 5, 1), ('✗', 5, 2)
     ]
 
-    for (text, row, col) in buttons:
-        btn = tk.Button(
-            lableFrameButtons, 
-            text=str(text), 
+    for (testo, riga, colonna) in tasti:
+        tk.Button(
+            frame_tastierino, 
+            text=str(testo), 
             width=8, 
             height=2,
             font=12,
-            command=lambda t=text: button_function(t)
-        )
-        btn.grid(row=row, column=col, padx=5, pady=5)
+            command=lambda t=testo: gestisci_tasto(t)
+        ).grid(row=riga, column=colonna, padx=5, pady=5)
 
-    # Mostra prodotti
-    for i, product in enumerate(prodotti):
-        product_frame = ttk.Frame(lableFrameProducts)
-        product_frame.grid(row=i // 2, column=i % 2, padx=10, pady=5, sticky="w")
+    # Mostra i prodotti con immagini
+    widgets_prodotti = {}
+    for i, prodotto in enumerate(prodotti):
+        frame_prodotto = ttk.Frame(label_prodotti)
+        frame_prodotto.grid(row=i // 2, column=i % 2, padx=10, pady=5, sticky="w")
         
-        try:
-            product_name = product.get('nome', '').split()[0].lower()
-            image_path = os.path.join(os.path.dirname(__file__), f"{product_name}.jpg")
-            img = Image.open(image_path)
-            img = img.resize((100, 100), Image.Resampling.LANCZOS)
-            photo = ImageTk.PhotoImage(img)
-            
-            img_label = tk.Label(product_frame, image=photo)
-            img_label.image = photo
-            img_label.grid(row=0, column=0, padx=5)
-            
-            product_info = f"ID: {product['id']}\n{product['nome']}\n€{product['prezzo']:.2f}\nDisponibili: {product['quantita']}"
-            info_label = tk.Label(product_frame, text=product_info, justify=tk.LEFT, font=10)
-            info_label.grid(row=0, column=1, padx=5)
-            
-            # Salva i widget per aggiornarli successivamente
-            products_list[product['id']] = {
-                'label': info_label,
-                'image': img_label
-            }
-        except Exception:
-            product_info = f"ID: {product['id']}\n{product['nome']}\n€{product['prezzo']:.2f}\nDisponibili: {product['quantita']}"
-            info_label = tk.Label(product_frame, text=product_info, justify=tk.LEFT, font=10)
-            info_label.grid(row=0, column=0, padx=5)
-            
-            products_list[product['id']] = {
-                'label': info_label,
-                'image': None
-            }
+        img_label = None
+        nome_immagine = f"{prodotto['nome'].split()[0].lower()}.jpg"
+        percorso_immagine = os.path.join(cartella_corrente, nome_immagine)
 
-    # Pulsanti denaro
-    money_buttons = [
+        if os.path.exists(percorso_immagine):
+            try:
+                img = Image.open(percorso_immagine).resize((100, 100), Image.Resampling.LANCZOS)
+                foto = ImageTk.PhotoImage(img)
+                img_label = tk.Label(frame_prodotto, image=foto)
+                img_label.image = foto
+                img_label.grid(row=0, column=0, padx=5)
+            except Exception as e:
+                print(f"Errore caricamento immagine {nome_immagine}: {e}")
+
+        testo_prodotto = f"ID: {prodotto['id']}\n{prodotto['nome']}\n€{prodotto['prezzo']:.2f}\nDisponibili: {prodotto['quantita']}"
+        label_testo = tk.Label(frame_prodotto, text=testo_prodotto, justify=tk.LEFT, font=10)
+        label_testo.grid(row=0, column=1 if img_label else 0, padx=5)  # Posizione dinamica
+
+        widgets_prodotti[prodotto['id']] = {
+            'label': label_testo,
+            'image': img_label
+        }
+
+    # Pulsanti soldi
+    pulsanti_soldi = [
         (0.05, "5 cent"), (0.10, "10 cent"), (0.20, "20 cent"), 
         (0.50, "50 cent"), (1.00, "1 euro"), (2.00, "2 euro"),
         (10.00, "Chiavetta 10€"), (20.00, "Chiavetta 20€")
     ]
-
-    for i, (value, label) in enumerate(money_buttons):
-        btn = tk.Button(
-            lableFrameMoney, 
-            text=label, 
+    
+    # Crea pulsanti per le monete e le chiavette
+    for i, (valore, etichetta) in enumerate(pulsanti_soldi):
+        tk.Button(
+            frame_soldi, 
+            text=etichetta, 
             width=12, 
             height=2,
             font=10,
-            command=lambda v=value: add_money(v)
-        )
-        btn.grid(row=i // 2, column=i % 2, padx=5, pady=5)
+            command=lambda v=valore: aggiungi_soldi(v)
+        ).grid(row=i // 2, column=i % 2, padx=5, pady=5)
 
-    # Pulsante resto
+    # Pulsante per il resto
     tk.Button(
-        lableFrameMoney, 
+        frame_soldi, 
         text="Richiedi resto", 
         width=15, 
         height=2,
         font=10,
-        command=give_change
-    ).grid(row=len(money_buttons) // 2 + 1, column=0, columnspan=2, pady=10)
+        command=dai_il_resto
+    ).grid(row=len(pulsanti_soldi) // 2 + 1, column=0, columnspan=2, pady=10)
 
-    # Schermo informazioni
-    tk.Label(
-        lableFrameInfo, 
-        textvariable=display_info, 
-        wraplength=400,
-        font=12
-    ).grid(row=0, column=0, padx=10, pady=10)
-    
-    codeInsert = ""  # Inizializza la variabile per l'inserimento del codice
     gui.mainloop()
 
 if __name__ == "__main__":

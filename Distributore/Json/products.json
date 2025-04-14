@@ -4,7 +4,7 @@
             "id": 1,
             "nome": "Acqua",
             "prezzo": 1.0,
-            "quantita": 49
+            "quantita": 46
         },
         {
             "id": 2,
@@ -46,7 +46,7 @@
             "id": 8,
             "nome": "Caffe",
             "prezzo": 0.8,
-            "quantita": 59
+            "quantita": 58
         },
         {
             "id": 9,
