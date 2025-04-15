@@ -6,6 +6,8 @@ from PIL import Image, ImageTk
 
 #------------------------------------------------------------------------------------------#
 # Funzioni per caricare e salvare i dati
+
+# Carica i prodotti da file JSON
 def carica_prodotti(file_prodotti):
     try:
         with open(file_prodotti, 'r') as f:
@@ -14,6 +16,7 @@ def carica_prodotti(file_prodotti):
     except:
         return []
 
+# Carica il resto disponibile da file JSON
 def carica_resto(file_resto):
     default = {"2.00": 0, "1.00": 0, "0.5": 0, "0.2": 0, "0.1": 0, "0.05": 0}
     try:
@@ -22,6 +25,7 @@ def carica_resto(file_resto):
     except:
         return default
 
+# Salva il resto aggiornato su file JSON
 def salva_resto(file_resto, resto):
     try:
         with open(file_resto, 'w') as f:
@@ -29,38 +33,39 @@ def salva_resto(file_resto, resto):
     except Exception as e:
         print("Errore nel salvataggio:", e)
 
+# Salva i prodotti aggiornati su file JSON
 def salva_prodotti(file_prodotti, prodotti):
     try:
         with open(file_prodotti, 'w') as f:
             json.dump({"products": prodotti}, f, indent=4)
     except Exception as e:
         print("Errore nel salvataggio:", e)
-        
+
 #------------------------------------------------------------------------------------------#
-#  Main
+# Funzione principale che avvia l'interfaccia del distributore
 
 def main():
     gui = tk.Tk()
     gui.title("Distributore Automatico")
-    gui.state('zoomed')
+    gui.state('zoomed')  # Finestra a schermo intero
 
-    # Percorsi dei file
+    # Percorsi dei file JSON
     cartella_corrente = os.path.dirname(__file__)
     file_prodotti = os.path.join(cartella_corrente, 'Json', 'products.json')
     file_resto = os.path.join(cartella_corrente, 'Json', 'resto.json')
     
-    # Carica i dati iniziali
+    # Caricamento iniziale dei dati
     prodotti = carica_prodotti(file_prodotti)
     resto = carica_resto(file_resto)
 
-    # Variabili per lo stato della macchina
     soldi_inseriti = 0.0
     codice_inserito = ""
     messaggio = "Benvenuto! Inserisci il codice del prodotto."
 
     #------------------------------------------------------------------------------------------#
-    # Funzioni per aggiornare l'interfaccia
-    
+    # Funzioni di interfaccia e logica
+
+    # Aggiorna le etichette dei prodotti nell'interfaccia
     def aggiorna_prodotti():
         for prodotto in prodotti:
             id_prodotto = prodotto['id']
@@ -68,30 +73,30 @@ def main():
                 testo = f"ID: {prodotto['id']}\n{prodotto['nome']}\n€{prodotto['prezzo']:.2f}\nDisponibili: {prodotto['quantita']}"
                 widgets_prodotti[id_prodotto]['label'].config(text=testo)
 
+    # Gestione Soldi
     def aggiungi_soldi(importo):
         nonlocal soldi_inseriti
         soldi_inseriti = round(soldi_inseriti + importo, 2)
         label_soldi.config(text=f"Soldi inseriti: €{soldi_inseriti:.2f}")
-        
-        # Aggiorna il resto se è una moneta
+            
         if importo in [0.05, 0.1, 0.2, 0.5, 1.0, 2.0]:
             chiave = f"{importo:.2f}" if importo >= 0.1 else "0.05"
             resto[chiave] = resto.get(chiave, 0) + 1
             salva_resto(file_resto, resto)
 
+    # Calcola e restituisce il resto all'utente
     def dai_il_resto():
         nonlocal soldi_inseriti, messaggio
         if soldi_inseriti == 0:
             messaggio = "Nessun resto da erogare."
-            label_info.config(text="Nessun resto da erogare.")
+            label_info.config(text=messaggio)
             return
 
         resto_da_dare = soldi_inseriti
         monete_usate = {}
-        
-        # Ordine delle monete dalla più grande alla più piccola
         monete = ["2.00", "1.00", "0.5", "0.2", "0.1", "0.05"]
-        
+
+        # Calcola le monete da restituire partendo dalle più grandi
         for moneta in monete:
             valore = float(moneta)
             if resto_da_dare >= valore and resto.get(moneta, 0) > 0:
@@ -101,6 +106,7 @@ def main():
                     resto_da_dare = round(resto_da_dare - (numero_monete * valore), 2)
                     resto[moneta] -= numero_monete
 
+        # Verifica se il resto è stato erogato correttamente
         if resto_da_dare > 0:
             messaggio = "Resto insufficiente. Mi scuso per l'inconveniente."
         else:
@@ -108,9 +114,10 @@ def main():
             soldi_inseriti = 0.0
             label_soldi.config(text=f"Soldi inseriti: €{soldi_inseriti:.2f}")
             salva_resto(file_resto, resto)
-        
+
         label_info.config(text=messaggio)
 
+    # Gestisce l'inserimento del codice e l'acquisto del prodotto
     def gestisci_tasto(tasto):
         nonlocal codice_inserito, messaggio, soldi_inseriti
         
@@ -142,7 +149,7 @@ def main():
                     messaggio = "Prodotto non trovato!"
             except ValueError:
                 messaggio = "Inserire un codice numerico valido"
-            
+
             codice_inserito = ""
             entry_codice.delete(0, tk.END)
             label_info.config(text=messaggio)
@@ -151,25 +158,29 @@ def main():
                 codice_inserito += str(tasto)
                 entry_codice.delete(0, tk.END)
                 entry_codice.insert(0, codice_inserito)
-                
+
     #------------------------------------------------------------------------------------------#
-    # Parte grafica
-    
+    # Costruzione interfaccia grafica (GUI)
+
+    # Struttura principale della finestra
     frame_principale = ttk.Frame(gui)
     frame_principale.place(relx=0.5, rely=0.5, anchor="center")
 
+    # Info e messaggi all'utente
     frame_info = ttk.LabelFrame(frame_principale, text="Info")
     frame_info.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
-    
+
     label_info = tk.Label(frame_info, text=messaggio, wraplength=400, font=12)
     label_info.grid(row=0, column=0, padx=10, pady=10)
 
+    # Sezione prodotti
     frame_prodotti = ttk.Frame(frame_principale)
     frame_prodotti.grid(row=1, column=0, padx=10, pady=10)
 
     label_prodotti = ttk.LabelFrame(frame_prodotti, text="Prodotti Disponibili")
     label_prodotti.grid(row=0, column=0, padx=10, pady=10)
 
+    # Sezione tastierino e denaro
     frame_pulsanti = ttk.Frame(frame_principale)
     frame_pulsanti.grid(row=1, column=1, padx=10, pady=10)
 
@@ -188,6 +199,7 @@ def main():
     entry_codice = tk.Entry(frame_tastierino, width=30, font=14)
     entry_codice.grid(row=0, column=0, columnspan=3, pady=10)
 
+    # Tastierino per inserire il codice
     tasti = [
         ('A', 1, 0), ('B', 1, 1), ('←', 1, 2),
         (1, 2, 0), (2, 2, 1), (3, 2, 2),
@@ -196,6 +208,7 @@ def main():
         ('✓', 5, 0), (0, 5, 1), ('✗', 5, 2)
     ]
 
+    # Creazione dei pulsanti tastierino
     for (testo, riga, colonna) in tasti:
         tk.Button(
             frame_tastierino, 
@@ -206,7 +219,7 @@ def main():
             command=lambda t=testo: gestisci_tasto(t)
         ).grid(row=riga, column=colonna, padx=5, pady=5)
 
-    # Mostra i prodotti con immagini
+    # Visualizzazione dei prodotti con immagini (se disponibili)
     widgets_prodotti = {}
     for i, prodotto in enumerate(prodotti):
         frame_prodotto = ttk.Frame(label_prodotti)
@@ -216,6 +229,7 @@ def main():
         nome_immagine = f"{prodotto['nome'].split()[0].lower()}.jpg"
         percorso_immagine = os.path.join(cartella_corrente, nome_immagine)
 
+        # Caricamento immagine del prodotto
         if os.path.exists(percorso_immagine):
             try:
                 img = Image.open(percorso_immagine).resize((100, 100), Image.Resampling.LANCZOS)
@@ -228,21 +242,21 @@ def main():
 
         testo_prodotto = f"ID: {prodotto['id']}\n{prodotto['nome']}\n€{prodotto['prezzo']:.2f}\nDisponibili: {prodotto['quantita']}"
         label_testo = tk.Label(frame_prodotto, text=testo_prodotto, justify=tk.LEFT, font=10)
-        label_testo.grid(row=0, column=1 if img_label else 0, padx=5)  # Posizione dinamica
+        label_testo.grid(row=0, column=1 if img_label else 0, padx=5)
 
         widgets_prodotti[prodotto['id']] = {
             'label': label_testo,
             'image': img_label
         }
 
-    # Pulsanti soldi
+    # Pulsanti per inserire denaro
     pulsanti_soldi = [
         (0.05, "5 cent"), (0.10, "10 cent"), (0.20, "20 cent"), 
         (0.50, "50 cent"), (1.00, "1 euro"), (2.00, "2 euro"),
         (10.00, "Chiavetta 10€"), (20.00, "Chiavetta 20€")
     ]
-    
-    # Crea pulsanti per le monete e le chiavette
+
+    # Creazione dei pulsanti monete e chiavette
     for i, (valore, etichetta) in enumerate(pulsanti_soldi):
         tk.Button(
             frame_soldi, 
@@ -253,7 +267,7 @@ def main():
             command=lambda v=valore: aggiungi_soldi(v)
         ).grid(row=i // 2, column=i % 2, padx=5, pady=5)
 
-    # Pulsante per il resto
+    # Pulsante per richiedere il resto
     tk.Button(
         frame_soldi, 
         text="Richiedi resto", 
