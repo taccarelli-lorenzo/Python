@@ -29,7 +29,7 @@ def carica_resto(file_resto):
 def salva_resto(file_resto, resto):
     try:
         with open(file_resto, 'w') as f:
-            json.dump({"monete": resto}, f, indent=4)
+            json.dump({"monete": resto}, f, indent=4) # da dizionario a json 
     except Exception as e:
         print("Errore nel salvataggio:", e)
 
@@ -37,7 +37,7 @@ def salva_resto(file_resto, resto):
 def salva_prodotti(file_prodotti, prodotti):
     try:
         with open(file_prodotti, 'w') as f:
-            json.dump({"products": prodotti}, f, indent=4)
+            json.dump({"products": prodotti}, f, indent=4) # da dizionario a json 
     except Exception as e:
         print("Errore nel salvataggio:", e)
 
@@ -62,6 +62,55 @@ def main():
     codice_inserito = ""
     messaggio = "Benvenuto! Inserisci il codice del prodotto."
 
+    #------------------------------------------------------------------------------------------#
+    # Costruzione interfaccia grafica (GUI)
+
+    # Struttura principale della finestra
+    frame_principale = ttk.Frame(gui)
+    frame_principale.place(relx=0.5, rely=0.5, anchor="center")
+
+    # Info e messaggi all'utente
+    frame_info = ttk.LabelFrame(frame_principale, text="Info")
+    frame_info.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+
+    label_info = tk.Label(frame_info, text=messaggio, wraplength=400, font=12)
+    label_info.grid(row=0, column=0, padx=10, pady=10)
+
+    # Sezione prodotti
+    frame_prodotti = ttk.Frame(frame_principale)
+    frame_prodotti.grid(row=1, column=0, padx=10, pady=10)
+
+    label_prodotti = ttk.LabelFrame(frame_prodotti, text="Prodotti Disponibili")
+    label_prodotti.grid(row=0, column=0, padx=10, pady=10)
+
+    # Sezione tastierino e denaro
+    frame_pulsanti = ttk.Frame(frame_principale)
+    frame_pulsanti.grid(row=1, column=1, padx=10, pady=10)
+
+    frame_tastierino = ttk.LabelFrame(frame_pulsanti, text="Inserisci codice")
+    frame_tastierino.grid(row=0, column=0, padx=10, pady=10)
+
+    frame_soldi = ttk.LabelFrame(frame_pulsanti, text="Inserisci denaro")
+    frame_soldi.grid(row=0, column=1, padx=10, pady=10, sticky="n")
+
+    frame_soldi_attuali = ttk.LabelFrame(frame_principale, text="Credito Attuale")
+    frame_soldi_attuali.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+    label_soldi = tk.Label(frame_soldi_attuali, text=f"Soldi inseriti: €{soldi_inseriti:.2f}", font=12)
+    label_soldi.grid(row=0, column=0, padx=10, pady=10)
+
+    entry_codice = tk.Entry(frame_tastierino, width=30, font=14)
+    entry_codice.grid(row=0, column=0, columnspan=3, pady=10)
+
+    # Tastierino per inserire il codice
+    tasti = [
+        ('A', 1, 0), ('B', 1, 1), ('←', 1, 2),
+        (1, 2, 0), (2, 2, 1), (3, 2, 2),
+        (4, 3, 0), (5, 3, 1), (6, 3, 2),
+        (7, 4, 0), (8, 4, 1), (9, 4, 2),
+        ('✓', 5, 0), (0, 5, 1), ('✗', 5, 2)
+    ]
+    
     #------------------------------------------------------------------------------------------#
     # Funzioni di interfaccia e logica
 
@@ -160,55 +209,6 @@ def main():
                 entry_codice.delete(0, tk.END)
                 entry_codice.insert(0, codice_inserito)
 
-    #------------------------------------------------------------------------------------------#
-    # Costruzione interfaccia grafica (GUI)
-
-    # Struttura principale della finestra
-    frame_principale = ttk.Frame(gui)
-    frame_principale.place(relx=0.5, rely=0.5, anchor="center")
-
-    # Info e messaggi all'utente
-    frame_info = ttk.LabelFrame(frame_principale, text="Info")
-    frame_info.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
-
-    label_info = tk.Label(frame_info, text=messaggio, wraplength=400, font=12)
-    label_info.grid(row=0, column=0, padx=10, pady=10)
-
-    # Sezione prodotti
-    frame_prodotti = ttk.Frame(frame_principale)
-    frame_prodotti.grid(row=1, column=0, padx=10, pady=10)
-
-    label_prodotti = ttk.LabelFrame(frame_prodotti, text="Prodotti Disponibili")
-    label_prodotti.grid(row=0, column=0, padx=10, pady=10)
-
-    # Sezione tastierino e denaro
-    frame_pulsanti = ttk.Frame(frame_principale)
-    frame_pulsanti.grid(row=1, column=1, padx=10, pady=10)
-
-    frame_tastierino = ttk.LabelFrame(frame_pulsanti, text="Inserisci codice")
-    frame_tastierino.grid(row=0, column=0, padx=10, pady=10)
-
-    frame_soldi = ttk.LabelFrame(frame_pulsanti, text="Inserisci denaro")
-    frame_soldi.grid(row=0, column=1, padx=10, pady=10, sticky="n")
-
-    frame_soldi_attuali = ttk.LabelFrame(frame_principale, text="Credito Attuale")
-    frame_soldi_attuali.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
-
-    label_soldi = tk.Label(frame_soldi_attuali, text=f"Soldi inseriti: €{soldi_inseriti:.2f}", font=12)
-    label_soldi.grid(row=0, column=0, padx=10, pady=10)
-
-    entry_codice = tk.Entry(frame_tastierino, width=30, font=14)
-    entry_codice.grid(row=0, column=0, columnspan=3, pady=10)
-
-    # Tastierino per inserire il codice
-    tasti = [
-        ('A', 1, 0), ('B', 1, 1), ('←', 1, 2),
-        (1, 2, 0), (2, 2, 1), (3, 2, 2),
-        (4, 3, 0), (5, 3, 1), (6, 3, 2),
-        (7, 4, 0), (8, 4, 1), (9, 4, 2),
-        ('✓', 5, 0), (0, 5, 1), ('✗', 5, 2)
-    ]
-
     # Creazione dei pulsanti tastierino
     for (testo, riga, colonna) in tasti:
         tk.Button(
@@ -217,7 +217,7 @@ def main():
             width=8, 
             height=2,
             font=12,
-            command=lambda t=testo: gestisci_tasto(t)
+            command=lambda t=testo: gestisci_tasto(t) 
         ).grid(row=riga, column=colonna, padx=5, pady=5)
 
     # Visualizzazione dei prodotti con immagini (se disponibili)
@@ -227,7 +227,7 @@ def main():
         frame_prodotto.grid(row=i // 2, column=i % 2, padx=10, pady=5, sticky="w")
         
         img_label = None
-        nome_immagine = f"{prodotto['nome'].split()[0].lower()}.jpg"
+        nome_immagine = f"{prodotto['nome'].split()[0].lower()}.jpg" # separa, prende il primo e lo mette in minuscolo
         percorso_immagine = os.path.join(cartella_corrente, nome_immagine)
 
         # Caricamento immagine del prodotto
@@ -277,6 +277,7 @@ def main():
         font=10,
         command=dai_il_resto
     ).grid(row=len(pulsanti_soldi) // 2 + 1, column=0, columnspan=2, pady=10)
+    
 
     gui.mainloop()
 

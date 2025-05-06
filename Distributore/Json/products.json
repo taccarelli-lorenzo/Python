@@ -4,13 +4,13 @@
             "id": 1,
             "nome": "Acqua",
             "prezzo": 1.0,
-            "quantita": 46
+            "quantita": 45
         },
         {
             "id": 2,
             "nome": "Coca Cola",
             "prezzo": 1.5,
-            "quantita": 24
+            "quantita": 23
         },
         {
             "id": 3,
