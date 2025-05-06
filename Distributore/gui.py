@@ -110,7 +110,8 @@ def main():
         if resto_da_dare > 0:
             messaggio = "Resto insufficiente. Mi scuso per l'inconveniente."
         else:
-            messaggio = "Resto erogato: " + ", ".join([f'{v}x{c}€' for c, v in monete_usate.items()])
+            dettagli_resto = ", ".join([f"{num} moneta/e da {valore}€" for valore, num in monete_usate.items()])
+            messaggio = f"Resto erogato: {dettagli_resto}"
             soldi_inseriti = 0.0
             label_soldi.config(text=f"Soldi inseriti: €{soldi_inseriti:.2f}")
             salva_resto(file_resto, resto)
@@ -251,9 +252,9 @@ def main():
 
     # Pulsanti per inserire denaro
     pulsanti_soldi = [
-        (0.05, "5 cent"), (0.10, "10 cent"), (0.20, "20 cent"), 
-        (0.50, "50 cent"), (1.00, "1 euro"), (2.00, "2 euro"),
-        (10.00, "Chiavetta 10€"), (20.00, "Chiavetta 20€")
+        (0.05, "0.05"), (0.10, "0.10"), (0.20, "0.20"), 
+        (0.50, "0.50"), (1.00, "1.00"), (2.00, "2.00"),
+        (10.00, "10.00€"), (20.00, "20.00€")
     ]
 
     # Creazione dei pulsanti monete e chiavette
